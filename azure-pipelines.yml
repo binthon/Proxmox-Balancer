@@ -1,5 +1,5 @@
 trigger:
-- master
+- main
 
 pool:
   name: "Win"
@@ -18,4 +18,4 @@ steps:
     echo "Wypychanie do GitHub (gałąź main)..."
     git push --force github HEAD:main --tags
   displayName: 'Push code to GitHub'
-  condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
+  condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
