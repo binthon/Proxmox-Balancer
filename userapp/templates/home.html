@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script>
+        const username = "{{ username }}";
+    </script>    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proxmox Dashboard</title>
+    <link rel="stylesheet" href="/static/home.css">
+    <script src="/static/home.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome, {{ username }}!</h1>
+        <div class="dashboard">
+            <div class="create-vm">
+                <h2>Create a New Virtual Machine</h2>
+                <form action="/create_vm" method="POST">
+                    <div class="form-group">
+                        <label for="vmid">VM ID</label>
+                        <input type="number" id="vmid" name="vmid" value="{{ resources.newID }}" readonly>
+                    </div>                    
+                    <div class="form-group">
+                        <label for="vmname">VM Name</label>
+                        <input type="text" id="vmname" name="vmname" value="{{ username }}" required oninput="validateForm(); updateVMName();">
+                    </div>
+                    <div class="form-group">
+                        <label for="memory">Memory (MB)</label>
+                        <input type="number" id="memory" name="memory" placeholder="Enter Memory" required oninput="validateForm()">
+                    </div>
+                    <div class="form-group">
+                        <label for="cores">CPU Cores</label>
+                        <input type="number" id="cores" name="cores" placeholder="Enter Number of Cores" required oninput="validateForm()">
+                    </div>
+                    <div class="form-group">
+                        <label for="disk">Disk Size (GB)</label>
+                        <input type="number" id="disk" name="disk" placeholder="Enter Disk Size" required oninput="validateForm()">
+                    </div>
+                    <div class="form-group">
+                        <label for="iso">ISO Image</label>
+                        <select id="iso" name="iso" required oninput="validateForm()">
+                            {% for iso in data.isoFiles %}
+                                <option value="{{ iso }}">{{ iso }}</option>
+                            {% else %}
+                                <option value="" disabled>No ISO files available</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="network-bridge">Network Bridge</label>
+                        <div id="network-bridge" class="network-options">
+                            {% for network in data.networks %}
+                                <div class="form-check">
+                                    <label for="network-{{ loop.index }}" class="networkLabel">
+                                        {{ network }}
+                                    </label>
+                                    <input type="radio" name="network" value="{{ network }}" required class="networkRadio" id="network-{{ loop.index }}" oninput="validateForm()">
+                                </div>
+                            {% else %}
+                                <p class="text-muted">No network bridges available.</p>
+                            {% endfor %}
+                        </div>
+                    </div>                    
+                    <button class="sumbitButton" type="submit" id="create-button" disabled>Create VM</button>
+                    {% if errors %}
+                    <div class="errors">
+                        {% for error in errors %}
+                        <div class="alert alert-error">
+                            {{ error }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </form>
+            </div>
+            <div class="vm-list">
+                <h2>Your Virtual Machines</h2>
+                <ul>
+                    {% for vm in userVM %}
+                        <li class="vm-item">
+                            <span>
+                                <strong>{{ vm.ID }}</strong> (Name: {{ vm.name }}) - {{ vm.type }}
+                            </span>
+                            <button class="deleteButton" data-vmid="{{ vm.ID}}">Delete machine</button>
+                        </li>
+                    {% else %}
+                        <li>No virtual machines found.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        <a href="{{ url_for('logout') }}" class="logout-link">Logout</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,21 @@
+trigger:
+- master
+
+pool:
+  name: "Win"
+
+steps:
+- checkout: self
+  persistCredentials: true
+  fetchDepth: 0
+
+- script: |
+    echo "Konfiguracja Git..."
+
+    echo "Dodawanie zdalnego repozytorium GitHub..."
+    git remote add github https://$(GITHUB_PAT)@github.com/binthon/Proxmox-Balancer.git
+    
+    echo "Wypychanie do GitHub (gałąź main)..."
+    git push --force github HEAD:main --tags
+  displayName: 'Push code to GitHub'
+  condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
