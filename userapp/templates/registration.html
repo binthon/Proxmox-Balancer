@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register</title>
+    <link rel="stylesheet" href="/static/registration.css">
+</head>
+<body>
+    <form method="POST">
+        <h2>Register</h2>
+        <input type="text" name="username" placeholder="Username" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <select name="userType" required>
+            <option value="" disabled selected>Select User Type</option>
+            <option value="executor">EXCECUTOR</option>
+            <option value="reader">READER</option>
+            <option value="manager">MANAGER</option>
+        </select>
+        <button type="submit">Register</button>
+        <button type="button" class="back-button" onclick="window.location.href='/'">Back to Login</button>
+        {% if errors %}
+        <div class="errors">
+            {% for error in errors %}
+            <div class="alert alert-error">
+                {{ error }}
+            </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </form>
+</body>
+</html>
