@@ -22,8 +22,8 @@ def getResources():
         nodes = [item for item in data if item["type"] == "node"]
         storages = [item for item in data if item["type"] == "storage" and "images" in item.get("content", "")]
         vimID = [item for item in data if item.get('type') in ['qemu', 'lxc']]
-        lastID = max(vm['vmid'] for vm in vimID) if vimID else 0
-        newID = lastID + 100
+        lastID = max(vm['vmid'] for vm in vimID) if vimID else 100
+        newID = lastID + 1
         
         totalRAM = sum(node.get("maxmem", 0) for node in nodes)
         usedRAM = sum(node.get("mem", 0) for node in nodes)
