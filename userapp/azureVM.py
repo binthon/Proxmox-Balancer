@@ -8,10 +8,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 SUBSCRIPTION_ID = os.getenv("AZURE_SUBSCRIPTION_ID")
-AZUREDEVOPS_ORG = os.getenv("AZDO_ORG")               # np. 'my-org'
-AZUREDEVOPS_PROJECT = os.getenv("AZDO_PROJECT")       # np. 'hybrid-project'
-AZUREDEVOPS_PIPELINE_ID = os.getenv("AZDO_PIPELINE_ID")  # np. '12'
-AZUREDEVOPS_PAT = os.getenv("AZDO_PAT")               # Personal Access Token
+AZUREDEVOPS_ORG = os.getenv("AZDO_ORG")               
+AZUREDEVOPS_PROJECT = os.getenv("AZDO_PROJECT")       
+AZUREDEVOPS_PIPELINE_ID = os.getenv("AZDO_PIPELINE_ID")  
+AZUREDEVOPS_PAT = os.getenv("AZDO_PAT")               
 credential = DefaultAzureCredential()
 compute_client = ComputeManagementClient(credential, SUBSCRIPTION_ID)
 

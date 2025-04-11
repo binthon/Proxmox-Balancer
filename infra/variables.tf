@@ -7,3 +7,5 @@ variable "vm_name" {}
 variable "vm_ram" {}
 variable "vm_cores" {}
 variable "vm_disk" {}
+variable "admin_password" {}
+variable "admin_username" {}

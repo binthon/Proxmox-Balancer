@@ -38,12 +38,12 @@ resource "azurerm_network_interface" "nic" {
 }
 
 resource "azurerm_linux_virtual_machine" "vm" {
-  name                  = "${var.username}-${var.vmid}"
+  name                  = var.vm_name
   resource_group_name   = azurerm_resource_group.rg.name
   location              = var.location
   size                  = local.selected_size
-  admin_username        = "azureuser"
-  admin_password        = "Azure123!"
+  admin_username        = var.admin_username
+  admin_password        = var.admin_password
 
   network_interface_ids = [azurerm_network_interface.nic.id]
 
