@@ -85,6 +85,7 @@ def create_vm():
     if memory > resources['freeRam'] or cores > resources['freeCPU'] or disk > resources['freeDisk']:
         try:
             generateTfvars(vmid, username, vmname, memory, cores, disk) 
+            
             status, result = triggerPipeline()
             if status == 200 or status == 201:
                 success = f"Brak zasobów w Proxmox — tworzę maszynę w Azure (pipeline ID: {result['id']})"

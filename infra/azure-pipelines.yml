@@ -1,7 +1,9 @@
 trigger: none
 
 pool:
-  vmImage: 'WIN'
+  name: "Win"
+  demands:
+    - Agent.Name -equals win
 
 variables:
   ARM_CLIENT_ID: $(ARM_CLIENT_ID)

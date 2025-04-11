@@ -24,35 +24,41 @@ def getProxmoxResources():
 
         nodes = [item for item in data if item["type"] == "node"]
         storages = [item for item in data if item["type"] == "storage" and "images" in item.get("content", "")]
-        
+
+        # RAM
         totalRAM = sum(node.get("maxmem", 0) for node in nodes)
         usedRAM = sum(node.get("mem", 0) for node in nodes)
         freeRam = totalRAM - usedRAM
 
+        # CPU
         totalCPU = sum(node.get("maxcpu", 0) for node in nodes)
-        usedCPU = sum(node.get("cpu", 0) * node.get("maxcpu", 0) for node in nodes)
-        actualUsedCores = round(usedCPU * totalCPU, 2)
-        freeCPU = totalCPU - actualUsedCores
+        usedCores = sum(node.get("cpu", 0) * node.get("maxcpu", 0) for node in nodes)
+        freeCPU = totalCPU - usedCores
 
+        # Disk
         totalDisk = sum(storage.get("maxdisk", 0) for storage in storages)
         usedDisk = sum(storage.get("disk", 0) for storage in storages)
         freeDisk = totalDisk - usedDisk
 
         return OrderedDict([
-            ("usedCPU", round(usedCPU, 4)),
-            ("realUsedCPU", actualUsedCores),
-            ("freeCPU", freeCPU),
+            ("usedCPU", round(usedCores / totalCPU, 4)),         # procent zużycia
+            ("realUsedCPU", round(usedCores, 2)),                # np. 3.5 rdzenia
+            ("freeCPU", round(freeCPU, 2)),
             ("totalCPU", totalCPU),
-            ("usedDisk", usedDisk // (1024 * 1024 * 1024)),
-            ("totalDisk", totalDisk // (1024 * 1024 * 1024)),
-            ("freeDisk", freeDisk // (1024 * 1024 * 1024)),
-            ("usedRam", usedRAM // (1024 * 1024)),
-            ("totalRam", totalRAM // (1024 * 1024)),
-            ("freeRam", freeRam // (1024 * 1024))
+
+            ("usedDisk", usedDisk // (1024 ** 3)),
+            ("freeDisk", freeDisk // (1024 ** 3)),
+            ("totalDisk", totalDisk // (1024 ** 3)),
+
+            ("usedRam", usedRAM // (1024 ** 2)),
+            ("freeRam", freeRam // (1024 ** 2)),
+            ("totalRam", totalRAM // (1024 ** 2)),
         ])
 
     except requests.exceptions.RequestException as e:
         return {"error": str(e)}
+
+
 
 
 def getProxmoxVMIDs():
