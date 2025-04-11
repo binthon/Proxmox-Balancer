@@ -1,4 +1,5 @@
 import json
+import os
 
 def generateTfvars(vmid, username, vmname, memory, cores, disk):
     tfvars = {
@@ -9,7 +10,9 @@ def generateTfvars(vmid, username, vmname, memory, cores, disk):
         "vm_name": vmname,
         "vm_ram": memory,
         "vm_cores": cores,
-        "vm_disk": disk
+        "vm_disk": disk,
+        "admin_username": os.getenv("TF_ADMIN_USERNAME"),
+        "admin_password": os.getenv("TF_ADMIN_PASSWORD")
     }
     with open("infra/terraform.tfvars.json", "w") as f:
         json.dump(tfvars, f)
