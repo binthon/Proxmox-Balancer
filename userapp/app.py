@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, Response
-from proxmox import getResources, getUserVM, getISONetwork, createVM, deleteVM
+from proxmox import getISONetwork, createVM, deleteVM
+from resources import getResources, getAllUserVM
 from database import getUser, addUser
 from werkzeug.security import check_password_hash
 import json
@@ -54,7 +55,7 @@ def home():
     username = session['username']
     if 'username' not in session:
         return redirect(url_for('login'))
-    userVM = getUserVM(username)
+    userVM = getAllUserVM(username)
     resources = getResources()
     data = getISONetwork()
     return render_template('home.html', username=username, resources=resources, userVM=userVM, data=data)
@@ -65,7 +66,7 @@ def create_vm():
         return redirect(url_for('login'))
 
     username = session['username']
-    userVM = getUserVM(username)
+    userVM = getAllUserVM(username)
     resources = getResources()
     data = getISONetwork() 
 
