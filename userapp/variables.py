@@ -14,5 +14,6 @@ def generateTfvars(vmid, username, vmname, memory, cores, disk):
         "admin_username": os.getenv("TF_ADMIN_USERNAME"),
         "admin_password": os.getenv("TF_ADMIN_PASSWORD")
     }
-    with open("infra/terraform.tfvars.json", "w") as f:
-        json.dump(tfvars, f)
+    if not os.path.exists("../infra/terraform.tfvars.json"):
+        with open("../infra/terraform.tfvars.json", "w") as f:
+            json.dump({}, f)
