@@ -2,11 +2,14 @@ from flask import Flask, render_template, request, redirect, url_for, session, j
 from proxmox import getISONetwork, createVM, deleteVM
 from resources import getResources, getAllUserVM
 from database import getUser, addUser
+from azureVM import triggerPipeline
 from werkzeug.security import check_password_hash
 import json
 import urllib3
 from dotenv import load_dotenv
 import os
+from variables import generateTfvars
+
 
 load_dotenv()
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -78,27 +81,27 @@ def create_vm():
     iso = request.form['iso']
     network = request.form['network']
 
-    errors = []
 
-    if memory > resources['freeRam']:
-        errors.append(f"Not enough RAM available. Free: {resources['freeRam']} MB.")
-    if cores > resources['freeCPU']:
-        errors.append(f"Not enough CPU cores available. Free: {resources['freeCPU']} cores.")
-    if disk > resources['freeDisk']:
-        errors.append(f"Not enough disk space available. Free: {resources['freeDisk']} GB.")
-    if errors:
-        return render_template('home.html', username=username, resources=resources, errors=errors, userVM=userVM, data=data)
-
+    if memory > resources['freeRam'] or cores > resources['freeCPU'] or disk > resources['freeDisk']:
+        try:
+            generateTfvars(vmid, username, vmname, memory, cores, disk) 
+            status, result = triggerPipeline()
+            if status == 200 or status == 201:
+                success = f"Brak zasobów w Proxmox — tworzę maszynę w Azure (pipeline ID: {result['id']})"
+                return render_template('home.html', username=username, resources=resources, userVM=userVM, data=data, success=success)
+            else:
+                error = result.get("message", "Nie udało się uruchomić pipeline DevOps")
+                return render_template('home.html', username=username, resources=resources, errors=[error], userVM=userVM, data=data)
+        except Exception as e:
+            return render_template('home.html', username=username, resources=resources, errors=[str(e)], userVM=userVM, data=data)
     try:
         result = createVM(vmid, vmname, memory, cores, disk, iso, network)
         if "error" in result:
-            errors.append(result["error"])
-            return render_template('home.html', username=username, resources=resources, errors=errors, userVM=userVM, data=data)
-
+            return render_template('home.html', username=username, resources=resources, errors=[result["error"]], userVM=userVM, data=data)
         return redirect(url_for('home')) 
     except Exception as e:
-        errors.append(str(e))
-        return render_template('home.html', username=username, resources=resources, errors=errors, userVM=userVM, data=data)
+        return render_template('home.html', username=username, resources=resources, errors=[str(e)], userVM=userVM, data=data)
+
 
 @app.route('/delete_vm', methods=['POST'])
 def delete_vm():
