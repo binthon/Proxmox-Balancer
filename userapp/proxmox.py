@@ -25,24 +25,21 @@ def getProxmoxResources():
         nodes = [item for item in data if item["type"] == "node"]
         storages = [item for item in data if item["type"] == "storage" and "images" in item.get("content", "")]
 
-        # RAM
         totalRAM = sum(node.get("maxmem", 0) for node in nodes)
         usedRAM = sum(node.get("mem", 0) for node in nodes)
         freeRam = totalRAM - usedRAM
 
-        # CPU
         totalCPU = sum(node.get("maxcpu", 0) for node in nodes)
         usedCores = sum(node.get("cpu", 0) * node.get("maxcpu", 0) for node in nodes)
         freeCPU = totalCPU - usedCores
 
-        # Disk
         totalDisk = sum(storage.get("maxdisk", 0) for storage in storages)
         usedDisk = sum(storage.get("disk", 0) for storage in storages)
         freeDisk = totalDisk - usedDisk
 
         return OrderedDict([
-            ("usedCPU", round(usedCores / totalCPU, 4)),         # procent zużycia
-            ("realUsedCPU", round(usedCores, 2)),                # np. 3.5 rdzenia
+            ("usedCPU", round(usedCores / totalCPU, 4)),         
+            ("realUsedCPU", round(usedCores, 2)),               
             ("freeCPU", round(freeCPU, 2)),
             ("totalCPU", totalCPU),
 
@@ -57,7 +54,6 @@ def getProxmoxResources():
 
     except requests.exceptions.RequestException as e:
         return {"error": str(e)}
-
 
 
 
