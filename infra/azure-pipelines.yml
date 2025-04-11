@@ -1,0 +1,24 @@
+trigger: none
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+  ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+  ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+  ARM_TENANT_ID: $(ARM_TENANT_ID)
+
+steps:
+- task: TerraformInstaller@1
+  inputs:
+    terraformVersion: '1.4.6'
+
+- script: terraform init
+  workingDirectory: infra/
+
+- script: terraform plan -var-file="terraform.tfvars.json"
+  workingDirectory: infra/
+
+- script: terraform apply -auto-approve -var-file="terraform.tfvars.json"
+  workingDirectory: infra/

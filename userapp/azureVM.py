@@ -1,8 +1,17 @@
 from azure.identity import DefaultAzureCredential
 from azure.mgmt.compute import ComputeManagementClient
 import os
+import requests
+import base64
+from dotenv import load_dotenv
+
+load_dotenv()
 
 SUBSCRIPTION_ID = os.getenv("AZURE_SUBSCRIPTION_ID")
+AZUREDEVOPS_ORG = os.getenv("AZDO_ORG")               # np. 'my-org'
+AZUREDEVOPS_PROJECT = os.getenv("AZDO_PROJECT")       # np. 'hybrid-project'
+AZUREDEVOPS_PIPELINE_ID = os.getenv("AZDO_PIPELINE_ID")  # np. '12'
+AZUREDEVOPS_PAT = os.getenv("AZDO_PAT")               # Personal Access Token
 credential = DefaultAzureCredential()
 compute_client = ComputeManagementClient(credential, SUBSCRIPTION_ID)
 
@@ -38,4 +47,35 @@ def getAzureVMID():
             except (ValueError, TypeError):
                 continue
     return ids
+
+
+def triggerPipeline():
+    url = f"https://dev.azure.com/{AZUREDEVOPS_ORG}/{AZUREDEVOPS_PROJECT}/_apis/pipelines/{AZUREDEVOPS_PIPELINE_ID}/runs?api-version=7.0"
+
+    pat_bytes = f":{AZUREDEVOPS_PAT}".encode("utf-8")
+    auth_header = base64.b64encode(pat_bytes).decode("utf-8")
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Basic {auth_header}"
+    }
+
+    payload = {
+        "resources": {
+            "repositories": {
+                "self": {
+                    "refName": "refs/heads/main"  
+                }
+            }
+        }
+    }
+
+    response = requests.post(url, headers=headers, json=payload)
+
+    try:
+        response.raise_for_status()
+        return response.status_code, response.json()
+    except Exception as e:
+        return 500, {"error": str(e), "details": response.text}
+
 
