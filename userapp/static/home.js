@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
             vmNameField.value = prefix;
             return;
         }
-        if (!suffix.startsWith('-')) {
+        if (!suffix.startsWith('-')) {      
             vmNameField.value = prefix + '-' + suffix;
         }
     };

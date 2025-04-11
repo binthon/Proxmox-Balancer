@@ -7,12 +7,15 @@ import os
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 load_dotenv()
+
 PROXMOX_URL = os.getenv("PROXMOX_URL")
 API_TOKEN = os.getenv("API_TOKEN")
 HEADERS = {"Authorization": API_TOKEN}
-NODE = "proxmox"  
+NODE = "proxmox"
 
-def getResources():
+
+# === ZASOBY ===
+def getProxmoxResources():
     url = f"{PROXMOX_URL}/cluster/resources"
     try:
         response = requests.get(url, headers=HEADERS, verify=False)
@@ -21,24 +24,19 @@ def getResources():
 
         nodes = [item for item in data if item["type"] == "node"]
         storages = [item for item in data if item["type"] == "storage" and "images" in item.get("content", "")]
-        vimID = [item for item in data if item.get('type') in ['qemu', 'lxc']]
-        lastID = max(vm['vmid'] for vm in vimID) if vimID else 100
-        newID = lastID + 1
         
         totalRAM = sum(node.get("maxmem", 0) for node in nodes)
         usedRAM = sum(node.get("mem", 0) for node in nodes)
-        freeRam  = totalRAM - usedRAM
+        freeRam = totalRAM - usedRAM
 
         totalCPU = sum(node.get("maxcpu", 0) for node in nodes)
         usedCPU = sum(node.get("cpu", 0) * node.get("maxcpu", 0) for node in nodes)
-        actualUsedCores = round(usedCPU * totalCPU,2)
+        actualUsedCores = round(usedCPU * totalCPU, 2)
         freeCPU = totalCPU - actualUsedCores
 
         totalDisk = sum(storage.get("maxdisk", 0) for storage in storages)
         usedDisk = sum(storage.get("disk", 0) for storage in storages)
         freeDisk = totalDisk - usedDisk
-
-
 
         return OrderedDict([
             ("usedCPU", round(usedCPU, 4)),
@@ -48,16 +46,28 @@ def getResources():
             ("usedDisk", usedDisk // (1024 * 1024 * 1024)),
             ("totalDisk", totalDisk // (1024 * 1024 * 1024)),
             ("freeDisk", freeDisk // (1024 * 1024 * 1024)),
-            ("usedRam", usedRAM // (1024 * 1024)), 
+            ("usedRam", usedRAM // (1024 * 1024)),
             ("totalRam", totalRAM // (1024 * 1024)),
-            ("freeRam", freeRam // (1024 * 1024)),
-            ("newID", newID)  
+            ("freeRam", freeRam // (1024 * 1024))
         ])
 
     except requests.exceptions.RequestException as e:
         return {"error": str(e)}
 
-def getUserVM(username):
+
+def getProxmoxVMIDs():
+    url = f"{PROXMOX_URL}/cluster/resources"
+    try:
+        response = requests.get(url, headers=HEADERS, verify=False)
+        response.raise_for_status()
+        data = response.json().get("data", [])
+        return [item['vmid'] for item in data if item.get('type') in ('qemu', 'lxc')]
+    except requests.exceptions.RequestException:
+        return []
+
+
+# === MASZYNY UŻYTKOWNIKA ===
+def getProxmoxVMs(username):
     url = f"{PROXMOX_URL}/cluster/resources"
     try:
         response = requests.get(url, headers=HEADERS, verify=False)
@@ -69,23 +79,22 @@ def getUserVM(username):
             if item.get("type") in ("qemu", "lxc"):
                 vmName = item.get("name", "")
                 vmID = item.get("vmid", "")
-                vmType = item.get("type","")
+                vmType = item.get("type", "")
                 if vmName.startswith(f"{username}-"):
                     userVMS.append({
                         "ID": vmID,
                         "name": vmName,
                         "type": vmType
                     })
-
         return userVMS
     except requests.exceptions.RequestException as e:
         return {"error": str(e)}
-    
 
+
+# === ISO i NETWORK ===
 def getISONetwork():
     isoURL = f"{PROXMOX_URL}/nodes/{NODE}/storage/local/content"
     networkURL = f"{PROXMOX_URL}/nodes/{NODE}/network"
-
     try:
         isoRes = requests.get(isoURL, headers=HEADERS, verify=False)
         isoRes.raise_for_status()
@@ -98,10 +107,11 @@ def getISONetwork():
         networks = [net["iface"] for net in netData if net.get("type") == "bridge"]
 
         return {"isoFiles": isoFiles, "networks": networks}
-
     except requests.exceptions.RequestException as e:
         return {"error": str(e)}
 
+
+# === TWORZENIE VM ===
 def createDisk(vmid, storage, size):
     url = f"{PROXMOX_URL}/nodes/{NODE}/storage/{storage}/content"
     headers = {
@@ -113,7 +123,6 @@ def createDisk(vmid, storage, size):
         "size": f"{size}G",
         "filename": f"vm-{vmid}-disk-0"
     }
-    
     try:
         response = requests.post(url, headers=headers, json=data, verify=False)
         response.raise_for_status()
@@ -121,23 +130,24 @@ def createDisk(vmid, storage, size):
     except requests.exceptions.RequestException as e:
         return {"error": f"Failed to create disk: {str(e)} - Response: {response.text}"}
 
+
 def startVm(vmid):
-    urlStart = f"{PROXMOX_URL}/nodes/{NODE}/qemu/{vmid}/status/start"
+    url = f"{PROXMOX_URL}/nodes/{NODE}/qemu/{vmid}/status/start"
     headers = {
         "Authorization": API_TOKEN,
         "Content-Type": "application/json"
     }
-
     try:
-        response = requests.post(urlStart, headers=headers, json={}, verify=False)  
+        response = requests.post(url, headers=headers, json={}, verify=False)
         response.raise_for_status()
-        return True  
+        return {"success": f"VM {vmid} started successfully."}
     except requests.exceptions.RequestException as e:
         return {"error": f"Failed to start VM: {str(e)} - Response: {response.text}"}
 
 
+
 def createVM(vmid, vmname, memory, cores, disk, iso, network):
-    vmStorage = "local-lvm"  
+    vmStorage = "local-lvm"
     headers = {
         "Authorization": API_TOKEN,
         "Content-Type": "application/json"
@@ -145,7 +155,7 @@ def createVM(vmid, vmname, memory, cores, disk, iso, network):
 
     diskCreation = createDisk(vmid, vmStorage, disk)
     if isinstance(diskCreation, dict) and "error" in diskCreation:
-        return diskCreation  
+        return diskCreation
 
     vmData = {
         "vmid": vmid,
@@ -155,61 +165,57 @@ def createVM(vmid, vmname, memory, cores, disk, iso, network):
         "sockets": 1,
         "net0": f"virtio,bridge={network}",
         "ide2": f"{iso},media=cdrom",
-        "ostype": "l26",  
+        "ostype": "l26",
         "scsihw": "virtio-scsi-pci",
         "boot": "order=scsi0;ide2;net0",
-        "scsi0": f"{vmStorage}:vm-{vmid}-disk-0",  
+        "scsi0": f"{vmStorage}:vm-{vmid}-disk-0",
         "onboot": 1,
-        "kvm": 0  
+        "kvm": 0
     }
 
-    urlVM = f"{PROXMOX_URL}/nodes/{NODE}/qemu"
-    urlStatus = f"{PROXMOX_URL}/nodes/{NODE}/qemu/{vmid}/status/current"
+    url = f"{PROXMOX_URL}/nodes/{NODE}/qemu"
+    status_url = f"{PROXMOX_URL}/nodes/{NODE}/qemu/{vmid}/status/current"
 
     try:
-        response = requests.post(urlVM, headers=headers, json=vmData, verify=False)
+        response = requests.post(url, headers=headers, json=vmData, verify=False)
         response.raise_for_status()
 
         for _ in range(6):
             time.sleep(5)
-            status_response = requests.get(urlStatus, headers=headers, verify=False)
+            status_response = requests.get(status_url, headers=headers, verify=False)
             status_response.raise_for_status()
             vm_status = status_response.json().get("data", {}).get("status", "")
-
             if vm_status == "stopped":
                 break
 
-        startResult = startVm(vmid)
-        if isinstance(startResult, dict) and "error" in startResult:
-            return startResult  
+        start_result = startVm(vmid)
+        if "error" in start_result:
+            return start_result
 
-        return {"success": f"Linux VM {vmname} (ID: {vmid}) created and started successfully!"}
+        return {"success": f"Linux VM '{vmname}' (ID: {vmid}) created and started successfully!"}
 
     except requests.exceptions.RequestException as e:
         return {"error": f"Failed to create/start VM: {str(e)} - Response: {response.text}"}
 
 
+# === USUWANIE VM ===
 def deleteVM(vmid):
+    status_url = f"{PROXMOX_URL}/nodes/{NODE}/qemu/{vmid}/status/current"
     urlStop = f"{PROXMOX_URL}/nodes/{NODE}/qemu/{vmid}/status/stop"
     urlDelete = f"{PROXMOX_URL}/nodes/{NODE}/qemu/{vmid}"
-
     try:
-        urlStatus = f"{PROXMOX_URL}/nodes/{NODE}/qemu/{vmid}/status/current"
-        response = requests.get(urlStatus, headers=HEADERS, verify=False)
+        response = requests.get(status_url, headers=HEADERS, verify=False)
         response.raise_for_status()
         vmStatus = response.json().get("data", {}).get("status", "")
 
         if vmStatus == "running":
             stopResponse = requests.post(urlStop, headers=HEADERS, json={}, verify=False)
             stopResponse.raise_for_status()
-
-            for _ in range(10): 
+            for _ in range(10):
                 time.sleep(3)
-                response = requests.get(urlStatus, headers=HEADERS, verify=False)
+                response = requests.get(status_url, headers=HEADERS, verify=False)
                 response.raise_for_status()
-                vmStatus = response.json().get("data", {}).get("status", "")
-
-                if vmStatus == "stopped":
+                if response.json().get("data", {}).get("status", "") == "stopped":
                     break
             else:
                 return {"error": f"VM {vmid} did not stop in time"}
