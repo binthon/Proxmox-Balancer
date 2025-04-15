@@ -1,0 +1,39 @@
+trigger: none
+
+pool:
+  name: "Win"
+  demands:
+    - Agent.Name -equals win
+
+variables:
+  ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+  ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+  ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+  ARM_TENANT_ID: $(ARM_TENANT_ID)
+
+steps:
+- task: PowerShell@2
+  displayName: "Tworzenie terraform.tfvars.json z wartości zmiennych"
+  inputs:
+    targetType: 'inline'
+    script: |
+      $clientId = "$(ARM_CLIENT_ID)"
+      $clientSecret = "$(ARM_CLIENT_SECRET)"
+      $tenantId = "$(ARM_TENANT_ID)"
+      $subscriptionId = "$(ARM_SUBSCRIPTION_ID)"
+
+      $lines = @()
+      $lines += '{'
+      $lines += '  "client_id": "' + $clientId + '",'
+      $lines += '  "client_secret": "' + $clientSecret + '",'
+      $lines += '  "tenant_id": "' + $tenantId + '",'
+      $lines += '  "subscription_id": "' + $subscriptionId + '"'
+      $lines += '}'
+
+      $lines | Out-File -FilePath terraform.tfvars.json -Encoding utf8
+
+- task: PublishPipelineArtifact@1
+  inputs:
+    targetPath: 'terraform.tfvars.json'
+    artifact: 'tfvars_user123'
+  displayName: "Publikuj artifact tfvars"
