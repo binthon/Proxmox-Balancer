@@ -10,27 +10,22 @@ variables:
 
 steps:
 - task: PowerShell@2
-  displayName: "Tworzenie terraform.tfvars.json z wartości zmiennych"
+  displayName: "Uzupełnij terraform.tfvars.json o dane uwierzytelniające"
   inputs:
     targetType: 'inline'
     script: |
-      $clientId = "$(ARM_CLIENT_ID)"
-      $clientSecret = "$(ARM_CLIENT_SECRET)"
-      $tenantId = "$(ARM_TENANT_ID)"
-      $subscriptionId = "$(ARM_SUBSCRIPTION_ID)"
+      $jsonPath = "terraform.tfvars.json"
+      $json = Get-Content $jsonPath | ConvertFrom-Json
 
-      $lines = @()
-      $lines += '{'
-      $lines += '  "client_id": "' + $clientId + '",'
-      $lines += '  "client_secret": "' + $clientSecret + '",'
-      $lines += '  "tenant_id": "' + $tenantId + '",'
-      $lines += '  "subscription_id": "' + $subscriptionId + '"'
-      $lines += '}'
+      $json.client_id = "$(ARM_CLIENT_ID)"
+      $json.client_secret = "$(ARM_CLIENT_SECRET)"
+      $json.tenant_id = "$(ARM_TENANT_ID)"
+      $json.subscription_id = "$(ARM_SUBSCRIPTION_ID)"
 
-      $lines | Out-File -FilePath terraform.tfvars.json -Encoding utf8
+      $json | ConvertTo-Json -Depth 3 | Out-File $jsonPath -Encoding utf8
 
 - task: PublishPipelineArtifact@1
   inputs:
     targetPath: 'terraform.tfvars.json'
     artifact: 'tfvars'
-  displayName: "Publikuj artifact tfvars"
+  displayName: "Publikuj tfvars"
