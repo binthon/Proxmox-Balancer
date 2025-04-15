@@ -3,7 +3,7 @@ trigger: none
 resources:
   pipelines:
     - pipeline: tfvarsGenerator         
-      source: tfvars.generate         
+      source: tfvarsGenerator        
       trigger:
         branches:
           - main
@@ -22,7 +22,7 @@ variables:
 parameters:
   - name: artifactName
     type: string
-    default: tfvars_user123
+    default: tfvars
   - name: fileName
     type: string
     default: terraform.tfvars.json
@@ -33,16 +33,22 @@ steps:
     artifact: ${{ parameters.artifactName }}
     path: '$(Pipeline.Workspace)/tfvars'
 
-- task: Bash@3
+- task: PowerShell@2
   name: CheckTfvars
+  displayName: "Sprawdź czy tfvars istnieje"
   inputs:
-    targetType: 'inline'
-    script: |
-      if [ -f "$(Pipeline.Workspace)/tfvars/${{ parameters.fileName }}" ]; then
-        echo "##vso[task.setvariable variable=shouldRunTerraform]true"
-      else
-        echo "##vso[task.setvariable variable=shouldRunTerraform]false"
-      fi
+      targetType: 'inline'
+      script: |
+        $fileName = "${{ parameters.fileName }}"
+        $filePath = "$(Pipeline.Workspace)\tfvars\$fileName"
+  
+        if (Test-Path $filePath) {
+          Write-Host "Znaleziono plik tfvars.json"
+          Write-Host "##vso[task.setvariable variable=shouldRunTerraform]true"
+        } else {
+          Write-Host "Nie znaleziono pliku tfvars.json"
+          Write-Host "##vso[task.setvariable variable=shouldRunTerraform]false"
+        }
 
 - script: terraform init
   workingDirectory: infra/
