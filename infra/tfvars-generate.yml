@@ -35,5 +35,5 @@ steps:
 - task: PublishPipelineArtifact@1
   inputs:
     targetPath: 'terraform.tfvars.json'
-    artifact: 'tfvars_user123'
+    artifact: 'tfvars'
   displayName: "Publikuj artifact tfvars"
