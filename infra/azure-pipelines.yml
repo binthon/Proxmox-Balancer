@@ -13,10 +13,6 @@ pool:
   demands:
     - Agent.Name -equals win
 
-variables:
-  - group: Terraform
-
-
 parameters:
   - name: artifactName
     type: string
