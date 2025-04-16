@@ -1,15 +1,19 @@
 trigger: none
 
 name: 'tfvars-generate'
+
 pool:
   name: "Win"
   demands:
     - Agent.Name -equals win
 
 steps:
-- script: |
-    echo "$TFVARS_CONTENT" > terraform.tfvars.json
-  displayName: "Stwórz terraform.tfvars.json z przekazanej zmiennej"
+- task: PowerShell@2
+  displayName: "Zapisz terraform.tfvars.json"
+  inputs:
+    targetType: inline
+    script: |
+      $env:TFVARS_CONTENT | Out-File -FilePath terraform.tfvars.json -Encoding utf8
 
 - task: PublishPipelineArtifact@1
   inputs:
