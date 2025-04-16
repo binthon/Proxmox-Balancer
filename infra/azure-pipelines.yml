@@ -32,8 +32,6 @@ steps:
     artifactName: ${{ parameters.artifactName }}
     targetPath: '$(Pipeline.Workspace)/tfvars'
 
-'
-
 
 - task: PowerShell@2
   name: CheckTfvars
