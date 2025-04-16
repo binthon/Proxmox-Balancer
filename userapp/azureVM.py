@@ -77,8 +77,6 @@ def triggerPipeline(tfvars_path="../infra/terraform.tfvars.json"):
         }
     }
 }
-
-
     response = requests.post(url, headers=headers, json=payload)
     print("STATUS:", response.status_code)
     print("RESPONSE:", response.text)
