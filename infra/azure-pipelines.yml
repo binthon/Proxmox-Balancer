@@ -23,14 +23,15 @@ parameters:
     default: terraform.tfvars.json
 
 steps:
-  - task: DownloadPipelineArtifact@2
+- task: DownloadPipelineArtifact@2
   inputs:
     buildType: 'specific'
     project: '$(System.TeamProject)'
-    definition: 'tfvars-generate'           
+    definition: 'tfvars-generate'
     runVersion: 'latest'
     artifactName: ${{ parameters.artifactName }}
     targetPath: '$(Pipeline.Workspace)/tfvars'
+
 '
 
 
