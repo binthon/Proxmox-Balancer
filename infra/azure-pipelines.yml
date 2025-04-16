@@ -4,9 +4,7 @@ resources:
   pipelines:
     - pipeline: tfvars-generate           
       source: tfvars-generate            
-      trigger:
-        branches:
-          - main              
+      trigger: true            
 
 pool:
   name: "Win"
@@ -48,14 +46,14 @@ steps:
 - script: terraform init
   workingDirectory: infra/
   condition: eq(variables['shouldRunTerraform'], 'true')
-  displayName: "🌱 Terraform Init"
+  displayName: "Terraform Init"
 
 - script: terraform plan -var-file="$(Pipeline.Workspace)/tfvars/${{ parameters.fileName }}"
   workingDirectory: infra/
   condition: eq(variables['shouldRunTerraform'], 'true')
-  displayName: "📋 Terraform Plan"
+  displayName: "Terraform Plan"
 
 - script: terraform apply -auto-approve -var-file="$(Pipeline.Workspace)/tfvars/${{ parameters.fileName }}"
   workingDirectory: infra/
   condition: eq(variables['shouldRunTerraform'], 'true')
-  displayName: "🚀 Terraform Apply"
+  displayName: "Terraform Apply"
