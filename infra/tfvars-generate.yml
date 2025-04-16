@@ -1,5 +1,6 @@
 trigger: none
 
+name: 'tfvars-generate'
 pool:
   name: "Win"
   demands:
@@ -7,8 +8,13 @@ pool:
 
 steps:
 - script: |
-    echo "$TFVARS_CONTENT" > terraform.tfvars.json
+    echo "${{ parameters.tfvarsContent }}" > terraform.tfvars.json
   displayName: "Stwórz terraform.tfvars.json z przekazanej zmiennej"
+- script: |
+    echo "Zmienna TFVARS_CONTENT:"
+    echo "$TFVARS_CONTENT"
+  displayName: "Debug TFVARS_CONTENT"
+
 
 - task: PublishPipelineArtifact@1
   inputs:

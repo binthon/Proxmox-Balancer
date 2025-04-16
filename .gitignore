@@ -2,3 +2,4 @@
 __pycache__
 pass
 README.md
+terraform.tfvars.json

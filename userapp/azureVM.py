@@ -71,14 +71,14 @@ def triggerPipeline(tfvars_path="../infra/terraform.tfvars.json"):
                 }
             }
         },
-        "variables": {
-            "TFVARS_CONTENT": {
-                "value": tfvars_content
-            }
-        }
+        "templateParameters": {
+        "tfvarsContent": tfvars_content  
+    }
     }
 
     response = requests.post(url, headers=headers, json=payload)
+    print("STATUS:", response.status_code)
+    print("RESPONSE:", response.text)
 
     try:
         response.raise_for_status()
