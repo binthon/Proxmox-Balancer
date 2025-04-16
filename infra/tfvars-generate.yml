@@ -8,13 +8,8 @@ pool:
 
 steps:
 - script: |
-    echo "${{ parameters.tfvarsContent }}" > terraform.tfvars.json
+    echo "$TFVARS_CONTENT" > terraform.tfvars.json
   displayName: "Stwórz terraform.tfvars.json z przekazanej zmiennej"
-- script: |
-    echo "Zmienna TFVARS_CONTENT:"
-    echo "$TFVARS_CONTENT"
-  displayName: "Debug TFVARS_CONTENT"
-
 
 - task: PublishPipelineArtifact@1
   inputs:
