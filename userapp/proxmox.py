@@ -68,7 +68,7 @@ def getProxmoxVMIDs():
         return []
 
 
-# === MASZYNY UŻYTKOWNIKA ===
+# === MASZYNY UŻYTKOWNIKA - pobranie Vm danego usera ===
 def getProxmoxVMs(username):
     url = f"{PROXMOX_URL}/cluster/resources"
     try:
@@ -93,7 +93,7 @@ def getProxmoxVMs(username):
         return {"error": str(e)}
 
 
-# === ISO i NETWORK ===
+# === ISO i NETWORK - pobranie obrazów oraz sieci w proxmoxie ===
 def getISONetwork():
     isoURL = f"{PROXMOX_URL}/nodes/{NODE}/storage/local/content"
     networkURL = f"{PROXMOX_URL}/nodes/{NODE}/network"
@@ -113,7 +113,7 @@ def getISONetwork():
         return {"error": str(e)}
 
 
-# === TWORZENIE VM ===
+# === TWORZENIE DYSKU - danego usera ===
 def createDisk(vmid, storage, size):
     url = f"{PROXMOX_URL}/nodes/{NODE}/storage/{storage}/content"
     headers = {
@@ -132,7 +132,7 @@ def createDisk(vmid, storage, size):
     except requests.exceptions.RequestException as e:
         return {"error": f"Failed to create disk: {str(e)} - Response: {response.text}"}
 
-
+# === URUCHMONIE VM - danego usera ===
 def startVm(vmid):
     url = f"{PROXMOX_URL}/nodes/{NODE}/qemu/{vmid}/status/start"
     headers = {
@@ -147,7 +147,7 @@ def startVm(vmid):
         return {"error": f"Failed to start VM: {str(e)} - Response: {response.text}"}
 
 
-
+# === TWORZENIE VM - danego usera ===
 def createVM(vmid, vmname, memory, cores, disk, iso, network):
     vmStorage = "local-lvm"
     headers = {

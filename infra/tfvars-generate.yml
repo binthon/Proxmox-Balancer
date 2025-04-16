@@ -12,8 +12,8 @@ steps:
   displayName: "Zapisz terraform.tfvars.json"
   inputs:
     targetType: inline
-    script: |
-      $env:TFVARS_CONTENT | Set-Content -Path terraform.tfvars.json -Encoding utf8NoBOM
+    script: | #trzeba uzyć uft8NoBOM bo się terra obrazi
+      $env:TFVARS_CONTENT | Set-Content -Path terraform.tfvars.json -Encoding utf8NoBOM 
 - task: PublishPipelineArtifact@1
   inputs:
     targetPath: 'terraform.tfvars.json'

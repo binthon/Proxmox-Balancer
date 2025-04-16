@@ -4,16 +4,16 @@ name: 'azureVM'
 
 resources:
   pipelines:
-    - pipeline: tfvars-generate           
-      source: tfvars-generate            
-      trigger: true            
+    - pipeline: tfvars-generate #alias          
+      source: tfvars-generate #nazwa pipelinu w ADO           
+      trigger: true # trigger jak tamten się skończy to ten uruchamia        
 
 pool:
   name: "Win"
   demands:
     - Agent.Name -equals win
           
-parameters:
+parameters: #definicja artefaktu jakny folder/plik
   - name: artifactName
     type: string
     default: tfvars                        
@@ -28,12 +28,12 @@ steps:
     buildType: 'specific'
     project: '$(System.TeamProject)'
     definition: 'tfvars-generate'
-    runVersion: 'latest'
-    artifactName: ${{ parameters.artifactName }}
-    targetPath: '$(Pipeline.Workspace)/tfvars'
+    runVersion: 'latest' #ostatni run tego 
+    artifactName: ${{ parameters.artifactName }} #zmienna z prameters
+    targetPath: '$(Pipeline.Workspace)/tfvars' # zapis w agencie
 
 
-- task: PowerShell@2
+- task: PowerShell@2 #ogolny check pliku, ustawienie zmiennych pipelinów ##vso
   name: CheckTfvars
   displayName: "✅ Sprawdź czy plik tfvars istnieje"
   inputs:
@@ -44,7 +44,7 @@ steps:
 
       if (Test-Path $filePath) {
         Write-Host "✅ Znaleziono plik tfvars.json"
-        Write-Host "##vso[task.setvariable variable=shouldRunTerraform]true"
+        Write-Host "##vso[task.setvariable variable=shouldRunTerraform]true" 
       } else {
         Write-Host "❌ Nie znaleziono pliku tfvars.json"
         Write-Host "##vso[task.setvariable variable=shouldRunTerraform]false"
@@ -52,15 +52,15 @@ steps:
 
 - script: terraform init
   workingDirectory: infra/
-  condition: eq(variables['shouldRunTerraform'], 'true')
+  condition: eq(variables['shouldRunTerraform'], 'true') #wykona się jeśli w tasku wyzej zmienna ustawionma na true
   displayName: "Terraform Init"
 
 - script: terraform plan -var-file="$(Pipeline.Workspace)/tfvars/${{ parameters.fileName }}"
   workingDirectory: infra/
-  condition: eq(variables['shouldRunTerraform'], 'true')
+  condition: eq(variables['shouldRunTerraform'], 'true') #wykona się jeśli w tasku wyzej zmienna ustawionma na true
   displayName: "Terraform Plan"
 
 - script: terraform apply -auto-approve -var-file="$(Pipeline.Workspace)/tfvars/${{ parameters.fileName }}"
   workingDirectory: infra/
-  condition: eq(variables['shouldRunTerraform'], 'true')
+  condition: eq(variables['shouldRunTerraform'], 'true') #wykona się jeśli w tasku wyzej zmienna ustawionma na true
   displayName: "Terraform Apply"
