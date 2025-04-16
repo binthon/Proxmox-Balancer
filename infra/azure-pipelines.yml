@@ -1,5 +1,7 @@
 trigger: none
 
+name: 'azureVM'
+
 resources:
   pipelines:
     - pipeline: tfvars-generate           
