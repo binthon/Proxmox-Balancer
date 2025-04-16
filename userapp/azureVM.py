@@ -49,7 +49,7 @@ def getAzureVMID():
     return ids
 
 
-def triggerPipeline():
+def triggerPipeline(tfvars_path="../infra/terraform.tfvars.json"):
     url = f"https://dev.azure.com/{AZUREDEVOPS_ORG}/{AZUREDEVOPS_PROJECT}/_apis/pipelines/{AZUREDEVOPS_PIPELINE_ID}/runs?api-version=7.0"
 
     pat_bytes = f":{AZUREDEVOPS_PAT}".encode("utf-8")
@@ -60,12 +60,20 @@ def triggerPipeline():
         "Authorization": f"Basic {auth_header}"
     }
 
+    with open(tfvars_path, "r") as f:
+        tfvars_content = f.read()
+
     payload = {
         "resources": {
             "repositories": {
                 "self": {
-                    "refName": "refs/heads/main"  
+                    "refName": "refs/heads/main"
                 }
+            }
+        },
+        "variables": {
+            "TFVARS_CONTENT": {
+                "value": tfvars_content
             }
         }
     }
@@ -77,5 +85,4 @@ def triggerPipeline():
         return response.status_code, response.json()
     except Exception as e:
         return 500, {"error": str(e), "details": response.text}
-
 

@@ -1,0 +1,16 @@
+trigger: none
+
+pool:
+  name: "Win"
+  demands:
+    - Agent.Name -equals win
+
+steps:
+- script: |
+    echo "$TFVARS_CONTENT" > terraform.tfvars.json
+  displayName: "Stwórz terraform.tfvars.json z przekazanej zmiennej"
+
+- task: PublishPipelineArtifact@1
+  inputs:
+    targetPath: 'terraform.tfvars.json'
+    artifactName: 'tfvars'
