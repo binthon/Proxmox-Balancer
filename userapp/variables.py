@@ -1,6 +1,6 @@
 import json
 import os
-
+# === Generowanie zmienny pod terraform ===
 def generateTfvars(vmid, username, vmname, memory, cores, disk):
     tfvars = {
         "resource_group": "Proxmox",
@@ -20,11 +20,9 @@ def generateTfvars(vmid, username, vmname, memory, cores, disk):
         "subscription_id": os.getenv("AZURE_SUBSCRIPTION_ID")
     }
 
-    print("tfvars JSON do zapisania:\n", json.dumps(tfvars, indent=2))
-
     with open("../infra/terraform.tfvars.json", "w") as f:
         json.dump(tfvars, f, indent=2)
         f.flush()
         os.fsync(f.fileno())
-        print("✅ Zapisano terraform.tfvars.json")
+
 

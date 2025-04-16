@@ -48,7 +48,7 @@ def getAzureVMID():
                 continue
     return ids
 
-
+# === Trigger uruchamiający pipeline do tworzenia artefact w ADV ===
 def triggerPipeline(tfvars_path="../infra/terraform.tfvars.json"):
     url = f"https://dev.azure.com/{AZUREDEVOPS_ORG}/{AZUREDEVOPS_PROJECT}/_apis/pipelines/{AZUREDEVOPS_PIPELINE_ID}/runs?api-version=7.0"
 
@@ -78,9 +78,6 @@ def triggerPipeline(tfvars_path="../infra/terraform.tfvars.json"):
     }
 }
     response = requests.post(url, headers=headers, json=payload)
-    print("STATUS:", response.status_code)
-    print("RESPONSE:", response.text)
-
     try:
         response.raise_for_status()
         return response.status_code, response.json()
