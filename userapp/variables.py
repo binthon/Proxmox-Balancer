@@ -20,7 +20,7 @@ def generateTfvars(vmid, username, vmname, memory, cores, disk):
         "subscription_id": os.getenv("AZURE_SUBSCRIPTION_ID")
     }
 
-    print("📦 tfvars JSON do zapisania:\n", json.dumps(tfvars, indent=2))
+    print("tfvars JSON do zapisania:\n", json.dumps(tfvars, indent=2))
 
     with open("../infra/terraform.tfvars.json", "w") as f:
         json.dump(tfvars, f, indent=2)
