@@ -13,8 +13,7 @@ steps:
   inputs:
     targetType: inline
     script: |
-      $env:TFVARS_CONTENT | Out-File -FilePath terraform.tfvars.json -Encoding utf8
-
+      $env:TFVARS_CONTENT | Set-Content -Path terraform.tfvars.json -Encoding utf8NoBOM
 - task: PublishPipelineArtifact@1
   inputs:
     targetPath: 'terraform.tfvars.json'
