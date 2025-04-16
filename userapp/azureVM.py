@@ -64,17 +64,20 @@ def triggerPipeline(tfvars_path="../infra/terraform.tfvars.json"):
         tfvars_content = f.read()
 
     payload = {
-        "resources": {
-            "repositories": {
-                "self": {
-                    "refName": "refs/heads/main"
-                }
+    "resources": {
+        "repositories": {
+            "self": {
+                "refName": "refs/heads/main"
             }
-        },
-        "templateParameters": {
-        "tfvarsContent": tfvars_content  
+        }
+    },
+    "variables": {
+        "TFVARS_CONTENT": {
+            "value": tfvars_content
+        }
     }
-    }
+}
+
 
     response = requests.post(url, headers=headers, json=payload)
     print("STATUS:", response.status_code)
