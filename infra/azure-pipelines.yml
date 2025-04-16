@@ -2,59 +2,60 @@ trigger: none
 
 resources:
   pipelines:
-    - pipeline: tfvarsGenerator         
-      source: tfvarsGenerator        
+    - pipeline: tfvars-generate           
+      source: tfvars-generate            
       trigger:
         branches:
-          - main
+          - main              
 
 pool:
   name: "Win"
   demands:
     - Agent.Name -equals win
-
+          
 parameters:
   - name: artifactName
     type: string
-    default: tfvars
+    default: tfvars                        
+
   - name: fileName
     type: string
     default: terraform.tfvars.json
 
 steps:
-- task: DownloadPipelineArtifact@2
-  inputs:
-    artifact: ${{ parameters.artifactName }}
-    path: '$(Pipeline.Workspace)/tfvars'
+- download: tfvars-generate
+  artifact: ${{ parameters.artifactName }}
+  path: '$(Pipeline.Workspace)/tfvars'
+
 
 - task: PowerShell@2
   name: CheckTfvars
-  displayName: "Sprawdź czy tfvars istnieje"
+  displayName: "✅ Sprawdź czy plik tfvars istnieje"
   inputs:
-      targetType: 'inline'
-      script: |
-        $fileName = "${{ parameters.fileName }}"
-        $filePath = "$(Pipeline.Workspace)\tfvars\$fileName"
-  
-        if (Test-Path $filePath) {
-          Write-Host "Znaleziono plik tfvars.json"
-          Write-Host "##vso[task.setvariable variable=shouldRunTerraform]true"
-        } else {
-          Write-Host "Nie znaleziono pliku tfvars.json"
-          Write-Host "##vso[task.setvariable variable=shouldRunTerraform]false"
-        }
+    targetType: 'inline'
+    script: |
+      $fileName = "${{ parameters.fileName }}"
+      $filePath = "$(Pipeline.Workspace)\tfvars\$fileName"
+
+      if (Test-Path $filePath) {
+        Write-Host "✅ Znaleziono plik tfvars.json"
+        Write-Host "##vso[task.setvariable variable=shouldRunTerraform]true"
+      } else {
+        Write-Host "❌ Nie znaleziono pliku tfvars.json"
+        Write-Host "##vso[task.setvariable variable=shouldRunTerraform]false"
+      }
 
 - script: terraform init
   workingDirectory: infra/
   condition: eq(variables['shouldRunTerraform'], 'true')
-  displayName: "Terraform Init"
+  displayName: "🌱 Terraform Init"
 
 - script: terraform plan -var-file="$(Pipeline.Workspace)/tfvars/${{ parameters.fileName }}"
   workingDirectory: infra/
   condition: eq(variables['shouldRunTerraform'], 'true')
-  displayName: "Terraform Plan"
+  displayName: "📋 Terraform Plan"
 
 - script: terraform apply -auto-approve -var-file="$(Pipeline.Workspace)/tfvars/${{ parameters.fileName }}"
   workingDirectory: infra/
   condition: eq(variables['shouldRunTerraform'], 'true')
-  displayName: "Terraform Apply"
+  displayName: "🚀 Terraform Apply"
