@@ -64,3 +64,11 @@ steps:
   workingDirectory: infra/
   condition: eq(variables['shouldRunTerraform'], 'true') #wykona się jeśli w tasku wyzej zmienna ustawionma na true
   displayName: "Terraform Apply"
+
+- script: |
+    echo Czyszczenie agenta...
+    rd /s /q "$(Pipeline.Workspace)"
+    rd /s /q "$(Build.ArtifactStagingDirectory)"
+    rd /s /q "$(Agent.TempDirectory)"
+  condition: always()
+  displayName: "🧹 Czyszczenie danych po pipeline (Windows)"
