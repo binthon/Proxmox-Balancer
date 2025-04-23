@@ -2,7 +2,6 @@ variable "resource_group" {}
 variable "location" {}
 variable "username" {}
 variable "vmid" {}
-variable "vm_size" {}
 variable "vm_name" {}
 variable "vm_ram" {}
 variable "vm_cores" {}
