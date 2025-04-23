@@ -68,10 +68,34 @@ steps:
   condition: eq(variables['shouldRunTerraform'], 'true') #wykona się jeśli w tasku wyzej zmienna ustawionma na true
   displayName: "Terraform Apply"
 
-- script: |
-    echo Czyszczenie agenta...
-    rd /s /q "$(Pipeline.Workspace)"
-    rd /s /q "$(Build.ArtifactStagingDirectory)"
-    rd /s /q "$(Agent.TempDirectory)"
+- task: PowerShell@2
+  displayName: "🧹 Czyszczenie danych po pipeline (PowerShell)"
   condition: always()
-  displayName: "🧹 Czyszczenie danych po pipeline (Windows)"
+  inputs:
+    targetType: 'inline'
+    script: |
+      Write-Host "Czyszczenie zawartości folderów agenta..."
+
+      $folders = @(
+        "$env:Pipeline_Workspace",
+        "$env:Build_ArtifactStagingDirectory",
+        "$env:Agent_TempDirectory"
+      )
+
+      foreach ($folder in $folders) {
+        if (Test-Path $folder) {
+          Write-Host "🧽 Czyścimy: $folder"
+
+          Get-ChildItem -Path $folder -Recurse -Force -ErrorAction SilentlyContinue | ForEach-Object {
+            try {
+              if ($_.PSIsContainer) {
+                Remove-Item $_.FullName -Recurse -Force -ErrorAction Stop
+              } else {
+                Remove-Item $_.FullName -Force -ErrorAction Stop
+              }
+            } catch {
+              Write-Host "⚠️ Nie udało się usunąć: $($_.FullName)"
+            }
+          }
+        }
+      }
