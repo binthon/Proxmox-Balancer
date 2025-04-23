@@ -19,11 +19,6 @@ locals {
   selected_size = lookup(local.vm_size_map, "${var.vm_ram}_${var.vm_cores}", "Standard_B1s")
 }
 
-resource "azurerm_resource_group" "rg" {
-  name     = var.resource_group
-  location = var.location
-}
-
 resource "azurerm_virtual_network" "vnet" {
   name                = "vnet-${var.vmid}"
   address_space       = ["10.0.0.0/16"]
