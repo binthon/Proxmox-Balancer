@@ -68,6 +68,7 @@ steps:
   condition: eq(variables['shouldRunTerraform'], 'true') #wykona się jeśli w tasku wyzej zmienna ustawionma na true
   displayName: "Terraform Apply"
 
+  #czyszczenie agenta po wykonaniu pipelinu
 - task: PowerShell@2
   displayName: "🧹 Czyszczenie danych po pipeline (PowerShell)"
   condition: always()
