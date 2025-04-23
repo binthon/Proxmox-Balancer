@@ -50,6 +50,9 @@ steps:
         Write-Host "##vso[task.setvariable variable=shouldRunTerraform]false"
       }
 
+- script: type "$(Pipeline.Workspace)/tfvars/terraform.tfvars.json"
+  displayName: "🧐 Pokaż zawartość tfvars (debug)"
+
 - script: terraform init
   workingDirectory: infra/
   condition: eq(variables['shouldRunTerraform'], 'true') #wykona się jeśli w tasku wyzej zmienna ustawionma na true
