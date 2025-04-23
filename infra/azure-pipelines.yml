@@ -50,7 +50,7 @@ steps:
         Write-Host "##vso[task.setvariable variable=shouldRunTerraform]false"
       }
 
-- script: type "$(Pipeline.Workspace)/tfvars/terraform.tfvars.json"
+- script: type "$(Pipeline.Workspace)\tfvars\terraform.tfvars.json"
   displayName: "🧐 Pokaż zawartość tfvars (debug)"
 
 - script: terraform init
