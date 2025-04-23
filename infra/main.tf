@@ -60,6 +60,6 @@ resource "azurerm_linux_virtual_machine" "vm" {
   }
 
   tags = {
-    var.username = tostring(var.vmid)
-    }
+    "${var.username}" = tostring(var.vmid)
+  }
 }
