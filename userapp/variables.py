@@ -4,7 +4,7 @@ import os
 def generateTfvars(vmid, username, vmname, memory, cores, disk):
     tfvars = {
         "resource_group": "Proxmox",
-        "location": "eu-north",
+        "location": "northeurope",
         "username": username,
         "vmid": str(vmid),
         "vm_name": vmname,
